@@ -1,0 +1,40 @@
+---
+description: INT SDD — GEMINI.md, .agent Control Plane, and .ai-context are repository memory
+alwaysApply: true
+---
+
+# INT Specification-Driven Delivery
+
+Follow `GEMINI.md` and `.agent/` as the organizational Control Plane. Do not rewrite files under `.agent/`.
+
+Project-specific stack rules live in `.ai-context/constitution.md`, not in the Control Plane.
+
+## Skills (single copy)
+
+INT skills live at `config/skills/`. Do not duplicate them under `.cursor/skills/`.
+
+- `config/skills/int-project-setup`
+- `config/skills/int-brd-ingestion`
+- `config/skills/int-sdd-lifecycle`
+- `config/skills/int-session-continuation`
+- `config/skills/int-hotfix-management`
+- `config/skills/int-release-management`
+- `config/skills/int-incident-management`
+
+Control Plane sync source: `config/skills/int-project-setup/resources/INT-Control-Plane/.agent/`
+
+## Session start
+
+Follow `int-session-continuation`: read `.ai-context/status.md` first, then the active spec, plan, and tasks. Do not guess project state from chat history.
+
+## This repository
+
+- Full-stack modular monolith. The Next.js experience and the Node.js service live in one repository and ship as one application. A split into separate services requires an approved ADR.
+- Intended code layout, when implementation is allowed: `src/frontend/`, `src/backend/`, `tests/frontend/`, `tests/backend/`. Do not create that tree before a spec is Gate 1 Approved and its plan is Plan Reviewed.
+- No implementation without an approved spec. Gate 1 HALT and Gate 2 HALT apply.
+- After Gate 1 **Approved**, generate the plan with `.agent/workflows/generate-plan.md`. Save it at `.ai-context/plans/<module>/<feature-slug>.plan.md`. Do not write a tasks file until the plan is **Plan Reviewed**.
+- The authoritative requirement baseline is `.ai-context/BRD.md`. Feature BRDs live under `.ai-context/brd/<module>/`, specs under `.ai-context/specs/<module>/`, and plans under `.ai-context/plans/<module>/`. Do not create `.ai-context/modules/`. Reviewer names and Gate 1 / Gate 2 for all modules go on `.ai-context/GATE.md`.
+- The current baseline is Internal Job Portal BRD **v0.2**, status **Pending Gate 1**. Questions in that file are closed. Do not draft plans, tasks, or application code until a spec is submitted and Gate 1 is approved.
+- The member journey and edge-case outcomes are `.ai-context/brd/end-to-end-journey.md`.
+- Product language stays industry-neutral. Rules run on duties and organizational units. Customer-facing titles are labels. Do not hard-code one industry's job titles into the workflow.
+- Stack in force: Next.js, NestJS, PostgreSQL, Prisma, Tailwind CSS, Jest, Docker (BR-55). Do not swap one of those without an ADR.
