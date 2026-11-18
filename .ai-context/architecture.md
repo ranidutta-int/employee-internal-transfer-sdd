@@ -17,7 +17,7 @@ Recorded as `.ai-context/decisions/ADR-001.md` (Proposed).
 | Store | PostgreSQL through Prisma |
 | Tests | Jest |
 | Release | Docker, one repository, one release, two processes |
-| HRMS | HTTPS JSON. Employee id is the key. Work email matches Google. Assignment confirmation is required and cannot be waived. |
+| HRMS | HTTPS JSON. Webhook primary; status pull every 5 minutes; fact pull hourly. Employee id is the key. Work email matches Google. Status events target 15 minutes. Assignment confirmation is required and cannot be waived. Detail: `.ai-context/brd/hrms-sync-and-hierarchy.md`. |
 
 ## Intended shape, when implementation is allowed
 

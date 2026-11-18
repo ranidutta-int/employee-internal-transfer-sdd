@@ -17,3 +17,15 @@ Append-only. Do not rewrite earlier entries.
 **Request:** Add a markdown file under the BRD that tracks a user's end-to-end journey, including edge cases and the real-world outcome for each. Close every open question and every working assumption with an industry-level decision.
 
 **Outcome:** `.ai-context/brd/end-to-end-journey.md`. Baseline moved to v0.2. Section 7 is closed. No application code.
+
+## 2026-11-17 — Operational gaps into the BRD
+
+**Request:** Put the missing detail into the BRD at the same how-it-works level as the 15-minute sync explanation: pages and who sees them, HRMS automatic sync, data loss, long chain/urgency, non-response, mid-journey close, mid-journey department/role/hierarchy changes, and how hierarchy is known.
+
+**Outcome:** Baseline v0.3. Companions `product-surface.md`, `hrms-sync-and-hierarchy.md`, `resilience-urgency-and-closure.md`. BR-59–BR-68. Journey EC-71–EC-80. No application code.
+
+## 2026-11-17 — Pitch demo narrative
+
+**Request:** Present the whole idea as a start-to-finish demo narrative for a pitch (without naming storyboard techniques).
+
+**Outcome:** `.ai-context/brd/pitch-demo-journey.md` with 12 beats, cast, timeline, alternate endings, and a demo checklist.

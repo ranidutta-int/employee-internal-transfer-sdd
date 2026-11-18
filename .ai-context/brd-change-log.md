@@ -1,5 +1,19 @@
 # BRD change log
 
+## Version 0.3 — 2026-11-17
+
+**Status:** Pending Gate 1. Section 7 still closed; operational gaps filled.
+
+**Summary:** Added product surface, HRMS sync/hierarchy mechanics, data-loss posture, expedite, and mid-journey closure detail at application-behaviour level.
+
+**Added:** BR-59–BR-68, FR-43–FR-51, NFR-05–NFR-06. Companions: `product-surface.md`, `hrms-sync-and-hierarchy.md`, `resilience-urgency-and-closure.md`. Journey EC-71–EC-80.
+
+**Notable decisions:** Webhook + 5-minute status / hourly fact pull; 15-minute status path explained as sync+enforcement; live vs frozen fields; unit change re-resolves releasing steward; Expedite 1/2 business-day clocks; RPO 24h / RTO 8h; stop catalog + people-ops cleanup when transition started.
+
+**API / code impact:** None written. Behaviour is now specified enough to design contracts next.
+
+---
+
 ## Version 0.2 — 2026-11-16
 
 **Status:** Pending Gate 1. Section 7 is closed.

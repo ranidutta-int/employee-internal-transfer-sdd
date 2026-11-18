@@ -1,12 +1,18 @@
 # End-to-end journey
 
-**Baseline:** `.ai-context/BRD.md` version 0.2  
+**Baseline:** `.ai-context/BRD.md` version 0.3  
 **Status:** Decided  
-**Date:** 2026-11-16
+**Date:** 2026-11-17
 
 This is the story of one member moving inside the organization, then the situations that interrupt that story and the outcome for each. The same duties apply in a campus, a laboratory, a hospital, a plant, or a technology firm. Titles on screen are the employer's words. The steps below use duties.
 
-Authoritative rules are BR-01 through BR-58 in the baseline. If this narrative and the baseline ever differ, the baseline wins.
+Authoritative rules are BR-01 through BR-68 in the baseline. Operational detail for pages, HRMS sync, hierarchy, data loss, urgency, and mid-journey closure lives in:
+
+- `.ai-context/brd/product-surface.md`
+- `.ai-context/brd/hrms-sync-and-hierarchy.md`
+- `.ai-context/brd/resilience-urgency-and-closure.md`
+
+If this narrative and the baseline ever differ, the baseline wins.
 
 ## People in the story
 
@@ -39,11 +45,17 @@ Authoritative rules are BR-01 through BR-58 in the baseline. If this narrative a
 | Panel | Majority passes. A tie declines. A vacant seat is escalated, not counted as a pass. A named veto duty can stop a majority. |
 | Absence | Active delegate for up to 30 days, one hop only. Then skip-level, then people operations. Silence never approves. |
 | Service time | Reminder after 2 business days. Escalation after 5. The clock uses Monday–Friday plus the organization's holidays, in the headquarters timezone. The clock pauses on a freeze and does not reset when a delegate takes the task. |
-| Snapshot age | Older than 24 hours pauses new applications and new decisions. Ended employment, suspension, and a do-not-move flag apply as soon as they are accepted, with a target of 15 minutes from the HRMS event. |
+| Snapshot age | Older than 24 hours pauses new applications and new decisions. Ended employment, suspension, and a do-not-move flag apply as soon as they are accepted, with a target of 15 minutes from the HRMS event (webhook + 5-minute status poll). |
+| Hierarchy | From HRMS primary/other lines only. Profile = upward line + direct reports. |
+| Mid-journey fact change | Live unit/role/line/skills for routing and recheck; apply-time eligibility kept for audit. Unit change before release → new unit’s releasing steward. |
+| Urgency | Expedite shortens reminder/escalate to 1 and 2 business days. Does not skip duties. |
+| Data loss | Case DB RPO 24h / RTO 8h. After restore, refresh from HRMS before mobility writes. |
 | Pay | No amounts in this portal. People operations may have a task to confirm pay in the HRMS. |
 | Notices | In the portal and to the work email. No SMS. No personal mailbox. |
 | After approval | Checklist from the movement type. HRMS assignment confirmation is always on it and cannot be waived. |
+| Mid-journey stop | Member-safe stop catalog; if transition started, people-ops cleanup item; no false “complete.” |
 | Audit | Kept 7 years after the case closes. |
+| Pages | Duty → page matrix in product-surface.md. |
 
 ## The happy path
 
@@ -51,9 +63,9 @@ Authoritative rules are BR-01 through BR-58 in the baseline. If this narrative a
 
 The member does nothing. The HRMS sends a row with a stable employee id, work email, name, status, worker type, unit, primary reporting line, any other lines, role, designation, skills, probation and its end, location, movement history, and employment start date.
 
-The portal stores that snapshot. There is no screen to type a person in.
+The portal accepts that over HTTPS JSON: webhook first, pull fallback. It stores the snapshot. There is no screen to type a person in. Hierarchy on profile is built only from those lines.
 
-Status changes (employment ended, suspended, do-not-move) are accepted with a target of 15 minutes from the HRMS event. Other facts arrive within 24 hours.
+Status changes (employment ended, suspended, do-not-move) are accepted with a target of 15 minutes from the HRMS event — not a UI timer: webhook or the 5-minute status poll updates the snapshot, open cases stop, and the next apply/approve is refused. Other facts arrive within 24 hours (hourly fact pull if webhooks are quiet).
 
 ### 2. The member signs in
 
@@ -210,6 +222,16 @@ Each row is the situation, the outcome, and the reason that outcome is the fair 
 | EC-68 | A named list of everyone who matches an opening is opened by the receiving steward or by people operations. | The list is shown, and the view is audited. | They are staffing the seat. The view must be traceable. |
 | EC-69 | An executive observer or an administrator opens that same eligible-population list. | Refused. The executive sees in-flight cases and aggregate counts. The administrator sees counts. | Observation and configuration are not a workforce search. |
 | EC-70 | Two chains become ready for the last seat at the same moment. | The first transition record stored reserves the seat. The other case stops as position filled. | One stored order is clearer than a meeting to pick a winner after both were approved. |
+| EC-71 | Member opens `/admin/sync` or another member’s `/applications/:id`. | Refused. Home and menus only show allowed pages. | Duty → page matrix is the product surface. |
+| EC-72 | HRMS webhook is down; status Ended is set at 10:00. | By the next status poll (≤ 5 minutes cadence), and within the 15-minute target overall, portal accepts Ended, stops cases, refuses writes. | Fallback pull exists so webhook outage does not equal blind trust. |
+| EC-73 | Member applied in unit A; before release, HRMS moves them to unit B. | Releasing steward becomes B’s steward for the not-yet-opened release task. Unit A is notified. Eligibility recheck runs. | Current unit is live; we do not keep A as releaser by default. |
+| EC-74 | Same as EC-73, but A’s releasing task was already in progress. | A’s holder keeps the open task. Later steps use live B. If A declines because the person left, that is a normal decline. | In-progress holder keeps context; live facts still drive what comes next. |
+| EC-75 | Role/designation/skills change mid-case so a hard rule fails. | Case stops with `eligibility_changed`. People already involved are told. | Decisions use live eligibility. |
+| EC-76 | People operations marks the case Expedite. | Reminder at 1 business day; escalate at 2. Chain duties unchanged. No auto-approve. | Urgency shortens the clock; it does not delete governance. |
+| EC-77 | Database restored from yesterday’s backup. | Mobility writes stay paused until HRMS status/fact pull refreshes snapshots. Cases come back from backup; people are not invented. | HRMS remains people source of truth; portal remains case source of truth. |
+| EC-78 | Member withdraws in review. | Terminal `withdrawn_by_member`; tasks cancelled; assignees and prior deciders notified; no HRMS assignment call. | Move never started in HRMS. |
+| EC-79 | People ops rescinds after a transition task was marked done but before HRMS accept. | Case `rescinded`; open tasks cancelled; people-ops cleanup item lists what was already done; movement is not complete. | Portal tracks cleanup; it does not silently pretend payroll/access never happened. |
+| EC-80 | Opening filled while this application is in review. | Stop `position_filled`; member-safe message that the position is no longer available. | Seat was reserved by another transition or the opening closed. |
 
 ## What the member can always see
 

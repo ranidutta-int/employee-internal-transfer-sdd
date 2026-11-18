@@ -1,6 +1,6 @@
 # Gate board — all modules
 
-Baseline `.ai-context/BRD.md` v0.1 is **Pending Gate 1**. It has not been submitted. Specs below are drafts, not in peer review.
+Baseline `.ai-context/BRD.md` v0.3 is **Pending Gate 1**. It has not been submitted. Specs below are drafts, not in peer review.
 
 ## Named reviewers (all modules)
 

@@ -34,7 +34,8 @@ Follow `int-session-continuation`: read `.ai-context/status.md` first, then the 
 - No implementation without an approved spec. Gate 1 HALT and Gate 2 HALT apply.
 - After Gate 1 **Approved**, generate the plan with `.agent/workflows/generate-plan.md`. Save it at `.ai-context/plans/<module>/<feature-slug>.plan.md`. Do not write a tasks file until the plan is **Plan Reviewed**.
 - The authoritative requirement baseline is `.ai-context/BRD.md`. Feature BRDs live under `.ai-context/brd/<module>/`, specs under `.ai-context/specs/<module>/`, and plans under `.ai-context/plans/<module>/`. Do not create `.ai-context/modules/`. Reviewer names and Gate 1 / Gate 2 for all modules go on `.ai-context/GATE.md`.
-- The current baseline is Internal Job Portal BRD **v0.2**, status **Pending Gate 1**. Questions in that file are closed. Do not draft plans, tasks, or application code until a spec is submitted and Gate 1 is approved.
+- The current baseline is Internal Job Portal BRD **v0.3**, status **Pending Gate 1**. Questions in that file are closed. Do not draft plans, tasks, or application code until a spec is submitted and Gate 1 is approved.
 - The member journey and edge-case outcomes are `.ai-context/brd/end-to-end-journey.md`.
+- Operational companions: `.ai-context/brd/product-surface.md`, `.ai-context/brd/hrms-sync-and-hierarchy.md`, `.ai-context/brd/resilience-urgency-and-closure.md`.
 - Product language stays industry-neutral. Rules run on duties and organizational units. Customer-facing titles are labels. Do not hard-code one industry's job titles into the workflow.
 - Stack in force: Next.js, NestJS, PostgreSQL, Prisma, Tailwind CSS, Jest, Docker (BR-55). Do not swap one of those without an ADR.

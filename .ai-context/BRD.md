@@ -1,15 +1,19 @@
 # Internal Job Portal — business requirements baseline
 
-**Version:** 0.2  
+**Version:** 0.3  
 **Status:** Pending Gate 1  
-**Date:** 2026-11-16  
+**Date:** 2026-11-17  
 **Source brief:** `docs/source/ijp-client-brief.md`  
 **Journey:** `.ai-context/brd/end-to-end-journey.md`  
+**Pitch demo (start to finish):** `.ai-context/brd/pitch-demo-journey.md`  
+**Product surface (pages):** `.ai-context/brd/product-surface.md`  
+**HRMS sync and hierarchy:** `.ai-context/brd/hrms-sync-and-hierarchy.md`  
+**Resilience, urgency, closure:** `.ai-context/brd/resilience-urgency-and-closure.md`  
 **Method:** the SDD participant guide (journey, question log, separated decisions, testable rules). The guide's sample feature is not a requirement of this product.
 
-This file is the requirement baseline. Module BRDs under `.ai-context/brd/` restate the rules they own. The end-to-end narrative and edge-case outcomes are in `.ai-context/brd/end-to-end-journey.md`. If a module file or the narrative and this file disagree, this file wins.
+This file is the requirement baseline. Module BRDs and the detailed BRD companions under `.ai-context/brd/` restate rules they own. If any companion and this file disagree, this file wins.
 
-Questions in Section 7 are closed. Application code, HTTP contracts, and a task plan are still not part of this version.
+Questions in Section 7 remain closed. v0.3 adds operational detail: screens, sync mechanics, hierarchy, mid-journey fact changes, data loss, urgency, and mid-journey closure. Application code and HTTP path contracts are still not in this version.
 
 ---
 
@@ -212,6 +216,16 @@ Every rule below is decided for this baseline. A movement type may loosen a rule
 | BR-56 | The HRMS exchange is HTTPS JSON, both for the workforce feed and for the assignment request. | Decided (Q-10, Q-11) |
 | BR-57 | A publisher who is not the receiving steward of the destination, people operations, or an administrator cannot publish an opening. | Decided |
 | BR-58 | When two cases would reserve the last seat, the first stored transition reserves it. The other stops as position filled. | Decided |
+| BR-59 | The experience exposes only the pages and duty matrix in `.ai-context/brd/product-surface.md`. Deep links obey the same matrix. Hiding a control is not authorization. | Decided |
+| BR-60 | Hierarchy is derived only from the accepted HRMS snapshot (unit, primary line, other lines). The portal does not invent reporting lines. Profile shows upward primary line and direct reports only. | Decided |
+| BR-61 | HRMS integration uses webhook as primary and scheduled pull as fallback (status every 5 minutes, facts every 1 hour). Payloads are HTTPS JSON, authenticated, and idempotent on employee id + HRMS event id. | Decided |
+| BR-62 | Status events (ended, suspended, do-not-move) are applied within a 15-minute target of the HRMS event. On accept: snapshot updates, open cases stop, session cannot act, sensitive writes re-check live status. | Decided |
+| BR-63 | On apply, the case stores opening, movement type, eligibility result, warnings, statement, and snapshot time for audit. Unit, lines, role, designation, skills, probation, and status are always read live from the latest snapshot for routing and rechecks. | Decided |
+| BR-64 | Before every decision the service reloads the snapshot, rechecks hard/warn rules, and re-resolves duties. Hard failure stops the case with member-safe reason `eligibility_changed` (or employment status reason when applicable). | Decided |
+| BR-65 | If the member's unit changes before the releasing-steward task opens, releasing steward resolves to the new current unit; the prior unit is notified. An in-progress releasing task keeps its holder; later steps use live facts. | Decided |
+| BR-66 | Database case data: backup with RPO ≤ 24 hours and RTO ≤ 8 hours. After restore, HRMS status and fact pulls refresh snapshots before mobility writes reopen. Workforce rows are never invented on restore. | Decided |
+| BR-67 | Expedite may be set on an opening or case by people operations or the receiving steward, with a reason. It shortens reminder/escalation to 1 and 2 business days. It does not skip duties or auto-approve. | Decided |
+| BR-68 | Mid-journey terminal and pause outcomes use the stop catalog and cleanup rules in `.ai-context/brd/resilience-urgency-and-closure.md`. If transition had started, people operations receives a cleanup checklist item; the portal does not mark the move complete and does not itself roll back external payroll or access systems. | Decided |
 
 ## 7. Question log
 
@@ -332,6 +346,15 @@ There is no open assumption list. Earlier working assumptions are replaced by th
 | FR-40 | Show a member their own hierarchy slice, facts, and cases, and refuse another member's profile. | BR-39, BD-03 |
 | FR-41 | Store mobility preferences that only narrow policy, plus an application statement. | BR-40 |
 | FR-42 | Count service time on the organization's business calendar. | BR-41 |
+| FR-43 | Expose only the pages and duty access in the product-surface matrix. | BR-59 |
+| FR-44 | Derive hierarchy and duty holders from the HRMS snapshot fields only. | BR-60 |
+| FR-45 | Ingest HRMS via webhook plus fallback pull; enforce idempotency and sync health visibility. | BR-61 |
+| FR-46 | Apply status events on the fast path and refuse sensitive writes when status is not allowed. | BR-62 |
+| FR-47 | Keep apply-time eligibility audit; use live snapshot for routing and rechecks; stop on new hard failure. | BR-63, BR-64 |
+| FR-48 | Re-resolve releasing steward to the live unit when that task has not opened; notify the prior unit. | BR-65 |
+| FR-49 | Meet backup RPO/RTO; after restore, refresh from HRMS before mobility writes. | BR-66 |
+| FR-50 | Support Expedite with shortened SLA clocks without skipping duties. | BR-67 |
+| FR-51 | Apply mid-journey stop catalog, notices, and people-operations cleanup when transition had started. | BR-68 |
 
 ## 11. Non-functional requirements
 
@@ -341,6 +364,8 @@ There is no open assumption list. Earlier working assumptions are replaced by th
 | NFR-02 | A member can see the current state of their own case without asking another team. | Required (FR-40). |
 | NFR-03 | The experience and the service ship as one application (TD-01). | Confirmed. |
 | NFR-04 | List, detail, and decision writes return within 2 seconds for 95% of calls, excluding HRMS and email time. | Decided (BR-54) |
+| NFR-05 | Status-event accept target: 15 minutes from HRMS event. Fact-update accept target: 24 hours. Status poll at least every 5 minutes when webhooks are quiet. | Decided (BR-51, BR-61, BR-62) |
+| NFR-06 | Case data backup RPO ≤ 24 hours; restore RTO ≤ 8 hours. | Decided (BR-66) |
 
 ## 12. Security considerations
 
@@ -357,7 +382,7 @@ There is no open assumption list. Earlier working assumptions are replaced by th
 
 ## 13. Scope
 
-**In scope for the baseline:** workforce sync and Google entry; configurable units and duties; profile and duty-specific home; rule-based openings; the decision chain; delegation and escalation; transition checklists; notices; executive observation; administration of the policy above.
+**In scope for the baseline:** workforce sync and Google entry; page/duty surface; hierarchy from HRMS; mid-journey fact changes; configurable units and duties; profile and duty-specific home; rule-based openings; the decision chain; delegation, escalation, and expedite; transition checklists; mid-journey closure and cleanup; notices; data-loss recovery posture; executive observation; administration of the policy above.
 
 **Out of scope:**
 
@@ -382,21 +407,21 @@ There is no open assumption list. Earlier working assumptions are replaced by th
 
 ## 15. Traceability
 
-Acceptance criteria live in the module specs. API identifiers, tasks, and executable tests are empty because this version decides behaviour and technology, and does not yet write the HTTP contract or the build plan. The member journey and the edge-case outcomes are `.ai-context/brd/end-to-end-journey.md`.
+Acceptance criteria live in the module specs. API path contracts and tasks are still empty; behaviour for sync, pages, urgency, and closure is decided in the BRD companions. Journey: `.ai-context/brd/end-to-end-journey.md`.
 
 | FR | Spec acceptance | API | Task | Test execution |
 | --- | --- | --- | --- | --- |
-| FR-01–FR-07 | `.ai-context/specs/identity/workforce-access.spec.md` | Not designed | Not designed | Not run |
-| FR-08–FR-14 | `.ai-context/specs/organization/org-model.spec.md` | Not designed | Not designed | Not run |
-| FR-40, FR-41 | `.ai-context/specs/experience/member-home.spec.md` | Not designed | Not designed | Not run |
+| FR-01–FR-07, FR-44–FR-47 | `.ai-context/specs/identity/workforce-access.spec.md` + sync companion | Not designed | Not designed | Not run |
+| FR-08–FR-14, FR-48 | `.ai-context/specs/organization/org-model.spec.md` | Not designed | Not designed | Not run |
+| FR-40, FR-41, FR-43 | `.ai-context/specs/experience/member-home.spec.md` + product-surface | Not designed | Not designed | Not run |
 | FR-15–FR-19 | `.ai-context/specs/opportunities/openings-and-matching.spec.md` | Not designed | Not designed | Not run |
-| FR-20–FR-30 | `.ai-context/specs/mobility/application-decision-chain.spec.md` | Not designed | Not designed | Not run |
-| FR-31–FR-34 | `.ai-context/specs/transition/movement-execution.spec.md` | Not designed | Not designed | Not run |
+| FR-20–FR-30, FR-50, FR-51 | `.ai-context/specs/mobility/application-decision-chain.spec.md` + closure companion | Not designed | Not designed | Not run |
+| FR-31–FR-34, FR-51 | `.ai-context/specs/transition/movement-execution.spec.md` | Not designed | Not designed | Not run |
 | FR-35 | `.ai-context/specs/notifications/journey-notifications.spec.md` | Not designed | Not designed | Not run |
-| FR-36–FR-39, FR-42 | `.ai-context/specs/governance/observation-and-control.spec.md` | Not designed | Not designed | Not run |
+| FR-36–FR-39, FR-42, FR-49 | `.ai-context/specs/governance/observation-and-control.spec.md` | Not designed | Not designed | Not run |
 
 The full matrix, including the empty-cell reason, is `.ai-context/traceability.md`.
 
 ## 16. Gate 1 posture
 
-This baseline is **not** a Gate 1 submission. Section 7 is closed. The journey and the edge cases are written. A reviewer still cannot see HTTP contracts, an executed test suite, or a task plan. Those are the next documents when a build is requested.
+This baseline is **not** a Gate 1 submission. Section 7 is closed. Journey, product surface, HRMS sync, hierarchy, urgency, data loss, and mid-journey closure are written. A reviewer still cannot see HTTP path contracts, an executed test suite, or a task plan. Those are the next documents when a build is requested.
